@@ -41,4 +41,35 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    pass
+    CUSTOMER = 1
+    RESTURANT = 2
+    ROLE_CHOISE = (
+        (CUSTOMER, 'Customer'),
+        (RESTURANT, 'Resturant'),
+    )
+
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=100)
+    role = models.PositiveSmallIntegerField(choices=ROLE_CHOISE, blank=True, null=True)
+    
+    is_active = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    create_date = models.DateTimeField(auto_now_add=True)
+    joined_date = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(auto_now=True)
+    mdifie_date = models.DateTimeField(auto_now=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('first_name', 'last_name', 'username')
+    objects = UserManager()
+
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+
+    def has_module_perms(self, app_label):
+        return True
