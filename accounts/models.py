@@ -1,75 +1,37 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import  AbstractUser
 
 
-class UserManager(BaseUserManager):
-    def create_user(self, username, email, first_name, last_name, password=None):
-        if not username:
-            raise ValueError('not username')
-        if not email:
-            raise ValueError('not email')
-
-        user = self.model(
-            username=username,
-            email=self.normalize_email(email),
-            first_name=first_name,
-            last_name=last_name,
-        )
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, email, first_name, last_name, password=None):
-        if not username:
-            raise ValueError('not username')
-        if not email:
-            raise ValueError('not email')
-
-        user = self.create_user(
-            username=username,
-            email=self.normalize_email(email),
-            first_name=first_name,
-            last_name=last_name,
-            password=password
-        )
-        user.is_active = True
-        user.is_staff = True
-        user.is_admin = True
-        user.is_superuser = True
-        user.save(using=self._db)
-        return user
-
-
-class User(AbstractBaseUser):
+class CustomUser(AbstractUser):
     CUSTOMER = 1
     RESTURANT = 2
     ROLE_CHOISE = (
         (CUSTOMER, 'Customer'),
         (RESTURANT, 'Resturant'),
     )
-
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    username = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)
     role = models.PositiveSmallIntegerField(choices=ROLE_CHOISE, blank=True, null=True)
+    email = models.EmailField(max_length=100, unique=True, verbose_name='ایمیل')
+    username = models.CharField(max_length=50, unique=True, verbose_name='نام کاربری')
     
-    is_active = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    EMAIL_FIELD = "email"
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'username']
 
-    create_date = models.DateTimeField(auto_now_add=True)
-    joined_date = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now=True)
-    mdifie_date = models.DateTimeField(auto_now=True)
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('first_name', 'last_name', 'username')
-    objects = UserManager()
+    class Meta:
+        verbose_name = 'کاربر'
+        verbose_name_plural='کاربران'
 
-    def has_perm(self, perm, obj=None):
-        return self.is_admin
 
-    def has_module_perms(self, app_label):
-        return True
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, verbose_name='کاربر')
+    profile_image = models.ImageField(upload_to='user/profile',verbose_name='عکس پروفایل')
+    city = models.CharField(max_length=100,null=True, blank=True,verbose_name='شهر')
+    addres = models.CharField(max_length=100, null=True, blank=True,verbose_name='آدرس')
+    phone_number = models.CharField(max_length=12, null=True, blank=True,verbose_name='شماره موبایل')
+
+    def __str__(self) -> str:
+        return f'User Profile For - {self.user.email}'
+    
+    class Meta:
+        verbose_name = 'اطلاهات کاربر'
+        verbose_name_plural='اطلاعات کاربران'
