@@ -2,4 +2,4 @@ from django.shortcuts import render, HttpResponse
 
 
 def register(request):
-    return HttpResponse('Register ')
+    return render(request, 'accounts/register.html')
